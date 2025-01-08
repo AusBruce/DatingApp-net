@@ -41,24 +41,24 @@ export class PhotoEditorComponent {
   //     }
   //   })
   // }
-  // setMainPhoto(photo: Photo) {
-  //   this.memberService.setMainPhoto(photo).subscribe({
-  //     next: _ => {
-  //       const user = this.accountService.currentUser();
-  //       if (user) {
-  //         user.photoUrl = photo.url;
-  //         this.accountService.setCurrentUser(user)
-  //       }
-  //       const updatedMember = {...this.member()}
-  //       updatedMember.photoUrl = photo.url;
-  //       updatedMember.photos.forEach(p => {
-  //         if (p.isMain) p.isMain = false;
-  //         if (p.id === photo.id) p.isMain = true;
-  //       });
-  //       this.memberChange.emit(updatedMember)
-  //     }
-  //   })
-  // }
+  setMainPhoto(photo: Photo) {
+    this.memberService.setMainPhoto(photo).subscribe({
+      next: _ => {
+        const user = this.accountService.currentUser();
+        if (user) {
+          user.photoUrl = photo.url;
+          this.accountService.setCurrentUser(user)
+        }
+        const updatedMember = {...this.member()}
+        updatedMember.photoUrl = photo.url;
+        updatedMember.photos.forEach(p => {
+          if (p.isMain) p.isMain = false;
+          if (p.id === photo.id) p.isMain = true;
+        });
+        this.memberChange.emit(updatedMember)
+      }
+    })
+  }
   initializeUploader() {
     this.uploader = new FileUploader({
       url: this.baseUrl + 'users/add-photo',
