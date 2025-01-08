@@ -3,11 +3,12 @@ import { AbstractControl, FormControl, FormGroup, FormsModule, ReactiveFormsModu
 import { AccountService } from '../_services/account.service';
 import { ToastrService } from 'ngx-toastr';
 import { JsonPipe, NgIf } from '@angular/common';
+import { TextInputComponent } from '../_forms/text-input/text-input.component';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [ReactiveFormsModule,JsonPipe,NgIf],
+  imports: [ReactiveFormsModule,JsonPipe,NgIf,TextInputComponent],
   templateUrl: './register.component.html',
   styleUrl: './register.component.css'
 })
@@ -26,7 +27,7 @@ cancelRegister = output<boolean>();
 
   initializeForm() {
     this.registerForm = new FormGroup({
-      username: new FormControl('Hello', Validators.required),
+      username: new FormControl('', Validators.required),
       password: new FormControl('', [Validators.required, Validators.minLength(4), Validators.maxLength(8)]),
       confirmPassword: new FormControl('', [Validators.required, Validators.minLength(4), Validators.maxLength(8),this.matchValues('password')])
      
