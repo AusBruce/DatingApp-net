@@ -22,8 +22,13 @@ cancelRegister = output<boolean>();
 
   model: any = {}
   registerForm: FormGroup = new FormGroup({});
+ 
+ maxDate = new Date();
+
   ngOnInit(): void {
     this.initializeForm();
+
+    this.maxDate.setFullYear(this.maxDate.getFullYear() - 18);
   
   }
 
