@@ -3,6 +3,7 @@ using API.DTOs;
 using API.Entities;
 using AutoMapper;
 using API.Extensions;
+using System.Runtime.ConstrainedExecution;
 
 namespace API.Helpers;
 
@@ -19,5 +20,8 @@ public AutoMapperProfiles()
 
 
     CreateMap<MemberUpdateDto,AppUser>();
+
+    CreateMap<RegisterDto, AppUser>();
+    CreateMap<string,DateOnly>().ConvertUsing(s => DateOnly.Parse(s));
 }
 }
