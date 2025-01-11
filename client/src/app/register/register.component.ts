@@ -1,7 +1,7 @@
 import { Component, EventEmitter, inject,  OnInit,  output,  } from '@angular/core';
 import { AbstractControl, FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
 import { AccountService } from '../_services/account.service';
-import { ToastrService } from 'ngx-toastr';
+
 import { JsonPipe, NgIf } from '@angular/common';
 import { TextInputComponent } from '../_forms/text-input/text-input.component';
 import { DatePickerComponent } from '../_forms/date-picker/date-picker.component';
@@ -10,19 +10,19 @@ import { Router } from '@angular/router';
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [ReactiveFormsModule,JsonPipe,NgIf,TextInputComponent,DatePickerComponent],
+  imports: [ReactiveFormsModule,NgIf,TextInputComponent,DatePickerComponent],
   templateUrl: './register.component.html',
   styleUrl: './register.component.css'
 })
 export class RegisterComponent implements OnInit {
   private accountService =inject(AccountService);
-private toastr = inject(ToastrService)
+
 private fb = inject(FormBuilder);
 private router = inject(Router);
 
 cancelRegister = output<boolean>();
 
-  model: any = {}
+
   registerForm: FormGroup = new FormGroup({});
  
  maxDate = new Date();
@@ -67,7 +67,7 @@ matchValues(matchTo: string): ValidatorFn {
     this.registerForm.patchValue({dateOfBirth: dob});
     
 
-    this.accountService.register(this.model).subscribe({
+    this.accountService.register(this.registerForm.value).subscribe({
       next: _ => this.router.navigateByUrl('/members'),
       error: error => this.validationErrors = error
 

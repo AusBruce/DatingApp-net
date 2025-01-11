@@ -68,12 +68,17 @@ public async Task<ActionResult> UpdateUser(MemberUpdateDto memberUpdateDto)
         var result = await photoService.AddPhotoAsync(file);
         
         if (result.Error != null) return BadRequest(result.Error.Message);
+        
         var photo = new Photo
         {
             Url = result.SecureUrl.AbsoluteUri,
             publicId = result.PublicId
         };
+       
+       if (user.Photos.Count == 0) photo.IsMain = true;
+       
         user.Photos.Add(photo);
+        
         if (await userRepository.SaveAllAsync()) 
             return CreatedAtAction(nameof(GetUser), 
                 new {username = user.UserName}, mapper.Map<PhotoDto>(photo));
