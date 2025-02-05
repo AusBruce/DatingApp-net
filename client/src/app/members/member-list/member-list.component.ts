@@ -3,10 +3,16 @@ import { MembersService } from '../../_services/members.service';
 import { Member } from '../../_models/member';
 import { MemberCardComponent } from "../member-card/member-card.component";
 
+import { PaginationModule } from 'ngx-bootstrap/pagination';
+import { AccountService } from '../../_services/account.service';
+
+import { FormsModule } from '@angular/forms';
+import { ButtonsModule } from 'ngx-bootstrap/buttons';
+
 @Component({
   selector: 'app-member-list',
   standalone: true,
-  imports: [MemberCardComponent],
+  imports: [MemberCardComponent, PaginationModule, FormsModule, ButtonsModule],
   templateUrl: './member-list.component.html',
   styleUrl: './member-list.component.css'
 })
@@ -14,15 +20,25 @@ export class MemberListComponent implements OnInit {
 
 memberService = inject(MembersService);
 
+pageNumber = 1;
+pageSize = 5;
+
 
 ngOnInit(): void {
-    if(this.memberService.members().length === 0)  
+    if(!this.memberService.paginatedResult()) 
   this.loadMembers();
   }
 
   loadMembers() {
-    this.memberService.getMembers()
+    this.memberService.getMembers(this.pageNumber, this.pageSize);
 
+  }
+
+  pageChanged(event: any) {
+    if (this.pageNumber != event.page) {
+      this.pageNumber = event.page;
+      this.loadMembers();
+    }
   }
 
 }
