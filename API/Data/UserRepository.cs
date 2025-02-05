@@ -21,6 +21,7 @@ public  class UserRepository(DataContext context,IMapper mapper) : IUserReposito
     public async Task<IEnumerable<MemberDto>> GetMembersAsync()
     {
         return await context.Users
+        
         .ProjectTo<MemberDto>(mapper.ConfigurationProvider)
         .ToListAsync();
     }
