@@ -8,6 +8,7 @@ import { AccountService } from '../../_services/account.service';
 
 import { FormsModule } from '@angular/forms';
 import { ButtonsModule } from 'ngx-bootstrap/buttons';
+import { UserParams } from '../../_models/userParams';
 
 @Component({
   selector: 'app-member-list',
@@ -18,10 +19,13 @@ import { ButtonsModule } from 'ngx-bootstrap/buttons';
 })
 export class MemberListComponent implements OnInit {
 
+
+  private accountService = inject(AccountService);
 memberService = inject(MembersService);
 
-pageNumber = 1;
-pageSize = 5;
+userParams =new UserParams(this.accountService.currentUser());
+
+
 
 
 ngOnInit(): void {
@@ -30,13 +34,13 @@ ngOnInit(): void {
   }
 
   loadMembers() {
-    this.memberService.getMembers(this.pageNumber, this.pageSize);
+    this.memberService.getMembers(this.userParams);
 
   }
 
   pageChanged(event: any) {
-    if (this.pageNumber != event.page) {
-      this.pageNumber = event.page;
+    if (this.userParams.pageNumber != event.page) {
+      this.userParams.pageNumber = event.page;
       this.loadMembers();
     }
   }
