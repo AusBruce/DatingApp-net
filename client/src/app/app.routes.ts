@@ -13,6 +13,7 @@ import { ServerErrorComponent } from './errors/server-error/server-error.compone
 import { MemberEditComponent } from './members/member-edit/member-edit.component';
 import { preventUnsavedChangesGuard } from './_guards/prevent-unsaved-changes.guard';
 import { memberDetailedResolver } from './_resolvers/member-detailed.resolver';
+import { AdminPanelComponent } from './admin/admin-panel/admin-panel.component';
 
 export const routes: Routes = [
 
@@ -28,6 +29,7 @@ export const routes: Routes = [
         canDeactivate:[preventUnsavedChangesGuard]},
     {path: 'lists',component: ListsComponent},
     {path: 'messages',component: MessagesComponent},
+    {path: 'admin', component: AdminPanelComponent}
 
     ]
 
