@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace API.Controllers;
+
 [Authorize]
 // /api/users
 public class UsersController(IUserRepository userRepository, IMapper mapper, IPhotoService photoService) : BaseApiController
@@ -29,7 +30,6 @@ public async Task<ActionResult<IEnumerable<MemberDto>>> GetUsers([FromQuery]User
    
    return Ok(users);
 }
-
 
 
 [HttpGet("{username}")]//   /api/users/3
