@@ -34,9 +34,9 @@ public class MessageRepository(DataContext context ,IMapper mapper) : IMessageRe
         query = messageParams.Container switch
         
         {
-            "Inbox" => query.Where(u => u.Recipient.UserName == messageParams.Username),
-            "Outbox" => query.Where(u => u.Sender.UserName == messageParams.Username ),
-            _ => query.Where(u => u.Recipient.UserName == messageParams.Username && u.DateRead == null)
+            "Inbox" => query.Where(u => u.Recipient.UserName == messageParams.Username && u.RecipientDeleted == false),
+            "Outbox" => query.Where(u => u.Sender.UserName == messageParams.Username && u.SenderDeleted == false),
+            _ => query.Where(u => u.Recipient.UserName == messageParams.Username && u.DateRead == null && u.RecipientDeleted == false)
         };
 
         var messages = query.ProjectTo<MessageDto>(mapper.ConfigurationProvider);
@@ -49,7 +49,7 @@ public class MessageRepository(DataContext context ,IMapper mapper) : IMessageRe
 
 
 
-     public async Task<IEnumerable<MessageDto>> GetMessageThread(string currentUsername, string recipientUsername)
+    public async Task<IEnumerable<MessageDto>> GetMessageThread(string currentUsername, string recipientUsername)
     {
         var messages = await context.Messages
             .Include(x => x.Sender).ThenInclude(x => x.Photos)
