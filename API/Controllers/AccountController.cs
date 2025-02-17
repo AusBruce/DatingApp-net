@@ -26,8 +26,7 @@ public async Task<ActionResult<UserDto>> Register(RegisterDto registerDto)
         var user = mapper.Map<AppUser>(registerDto);
 
             user.UserName = registerDto.UserName.ToLower();
-        user.PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDto.Password));
-        user.PasswordSalt = hmac.Key;
+    
 
         context.Users.Add(user);
         await context.SaveChangesAsync();
@@ -53,15 +52,7 @@ public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
 
     if (user == null) return Unauthorized("Invalid username");
 
-    using var hmac = new HMACSHA512(user.PasswordSalt);
-
-    var computeHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(loginDto.Password));
-    for (int i = 0; i < computeHash.Length; i++)
-    {
-       if(computeHash[i] != user.PasswordHash[i]) return Unauthorized("Invalid password");
-
-      
-    }
+   
     return new UserDto
    {
     Username = user.UserName,
