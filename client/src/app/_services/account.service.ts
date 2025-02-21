@@ -4,6 +4,7 @@ import { computed, inject, Injectable, model, signal } from '@angular/core';
 import { map } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { LikesService } from './likes.service';
+import { PresenceService } from './presence.service';
 
 @Injectable({
   providedIn: 'root'
@@ -12,6 +13,8 @@ export class AccountService {
 
   private http = inject(HttpClient);
   private likeService = inject(LikesService);
+
+private  presebceService = inject(PresenceService);
   baseUrl = environment.apiUrl;
   
   currentUser = signal<User | null>(null);
@@ -48,6 +51,8 @@ export class AccountService {
   setCurrentUser(user: User) {
     localStorage.setItem('user', JSON.stringify(user));
     this.currentUser.set(user);
+    this.likeService.getLikeIds();
+    this.presebceService.createHubConnection(user);
 
   }
 
