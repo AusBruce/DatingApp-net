@@ -1,6 +1,6 @@
-import { Component, computed, inject, input, ViewEncapsulation } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 import { Member } from '../../_models/member';
-import { RouterEvent, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { LikesService } from '../../_services/likes.service';
 import { PresenceService } from '../../_services/presence.service';
 
@@ -9,20 +9,14 @@ import { PresenceService } from '../../_services/presence.service';
   standalone: true,
   imports: [RouterLink],
   templateUrl: './member-card.component.html',
-  styleUrl: './member-card.component.css',
-  encapsulation: ViewEncapsulation.None
+  styleUrl: './member-card.component.css'
 })
 export class MemberCardComponent {
-
   private likeService = inject(LikesService);
-
-  private presebceService = inject(PresenceService);  
-
+  private presenceService = inject(PresenceService);
   member = input.required<Member>();
-
   hasLiked = computed(() => this.likeService.likeIds().includes(this.member().id));
-  
-  isOnline = computed(() => this.presebceService.onlineUsers().includes(this.member().userName));
+  isOnline = computed(() => this.presenceService.onlineUsers().includes(this.member().userName));
 
   toggleLike() {
     this.likeService.toggleLike(this.member().id).subscribe({
@@ -35,5 +29,4 @@ export class MemberCardComponent {
       }
     })
   }
-
 }

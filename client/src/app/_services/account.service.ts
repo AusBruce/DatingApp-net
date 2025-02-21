@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
+import { Injectable, computed, inject, signal } from '@angular/core';
 import { User } from '../_models/user';
-import { computed, inject, Injectable, model, signal } from '@angular/core';
 import { map } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { LikesService } from './likes.service';
@@ -10,15 +10,11 @@ import { PresenceService } from './presence.service';
   providedIn: 'root'
 })
 export class AccountService {
-
   private http = inject(HttpClient);
   private likeService = inject(LikesService);
-
-private  presebceService = inject(PresenceService);
+  private presenceService = inject(PresenceService);
   baseUrl = environment.apiUrl;
-  
   currentUser = signal<User | null>(null);
-
   roles = computed(() => {
     const user = this.currentUser();
     if (user && user.token) {
@@ -27,20 +23,20 @@ private  presebceService = inject(PresenceService);
     return null;
   })
 
-
-  login(model: any){
-    return this.http.post<User>(this.baseUrl+'account/login',model).pipe(
+  login(model: any) {
+    return this.http.post<User>(this.baseUrl + 'account/login', model).pipe(
       map(user => {
-        if(user){
+        if (user) {
           this.setCurrentUser(user);
         }
       })
     )
   }
-  register(model: any){
-    return this.http.post<User>(this.baseUrl+'account/register',model).pipe(
+
+  register(model: any) {
+    return this.http.post<User>(this.baseUrl + 'account/register', model).pipe(
       map(user => {
-        if(user){
+        if (user) {
           this.setCurrentUser(user);
         }
         return user;
@@ -52,13 +48,12 @@ private  presebceService = inject(PresenceService);
     localStorage.setItem('user', JSON.stringify(user));
     this.currentUser.set(user);
     this.likeService.getLikeIds();
-    this.presebceService.createHubConnection(user);
-
+    this.presenceService.createHubConnection(user)
   }
 
-  logout(){
-    localStorage.removeItem("user");
-    this.currentUser.set(null)
-    this.likeService.getLikeIds();
+  logout() {
+    localStorage.removeItem('user');
+    this.currentUser.set(null);
+    this.presenceService.stopHubConnection();
   }
 }

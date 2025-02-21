@@ -1,8 +1,9 @@
-import { Component, OnInit, ViewChild, inject, input, output } from '@angular/core';
-import { Message } from '../../_models/message';
+import { Component, ViewChild, inject, input } from '@angular/core';
+
 import { MessageService } from '../../_services/message.service';
 import { TimeagoModule } from 'ngx-timeago';
 import { FormsModule, NgForm } from '@angular/forms';
+
 @Component({
   selector: 'app-member-messages',
   standalone: true,
@@ -12,17 +13,18 @@ import { FormsModule, NgForm } from '@angular/forms';
 })
 export class MemberMessagesComponent {
   @ViewChild('messageForm') messageForm?: NgForm;
- messageService = inject(MessageService);
-  
+  messageService = inject(MessageService);
   username = input.required<string>();
-  
+
   messageContent = '';
-  
- 
-  
+
+
   sendMessage() {
     this.messageService.sendMessage(this.username(), this.messageContent).then(() => {
       this.messageForm?.reset();
+
+
+
     })
   }
 }

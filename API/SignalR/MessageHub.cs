@@ -17,73 +17,22 @@ public class MessageHub(IMessageRepository messageRepository, IUserRepository us
 
         if (Context.User == null || string.IsNullOrEmpty(otherUser)) 
             throw new Exception("Cannot join group");
-        
         var groupName = GetGroupName(Context.User.GetUsername(), otherUser);
-        
-        
-        
         await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
+        var group = await AddToGroup(groupName);
 
-        await AddToGroup(groupName);
-        
-        // var group = await AddToGroup(groupName);
-
-        // await Clients.Group(groupName).SendAsync("UpdatedGroup", group);
+        await Clients.Group(groupName).SendAsync("UpdatedGroup", group);
 
         var messages = await messageRepository.GetMessageThread(Context.User.GetUsername(), otherUser!);
 
-        await Clients.Group(groupName).SendAsync("ReceiveMessageThread", messages);
+        await Clients.Caller.SendAsync("ReceiveMessageThread", messages);
         
     }
 
-
- private string GetGroupName(string caller, string? other)
- {
-
-
-    var stringCompare = string.CompareOrdinal(caller, other) < 0;
-    return stringCompare ? $"{caller}-{other}" : $"{other}-{caller}";
-}
-
-
-
-//     private async Task<Group> AddToGroup(string groupName)
-//     {
-//         var username = Context.User?.GetUsername() ?? throw new Exception("Cannot get username");
-//         var group = await messageRepository.GetMessageGroup(groupName);
-//         var connection = new Connection{ConnectionId = Context.ConnectionId, Username = username};
-
-//         if (group == null)
-//         {
-//             group = new Group{Name = groupName};
-//             messageRepository.AddGroup(group);
-//         }
-
-//         group.Connections.Add(connection);
-
-//         if (await messageRepository.SaveAllAsync()) return group;
-
-//         throw new HubException("Failed to join group");
-//     }
-
-//     private async Task<Group> RemoveFromMessageGroup() 
-//     {
-//         var group = await messageRepository.GetGroupForConnection(Context.ConnectionId);
-//         var connection = group?.Connections.FirstOrDefault(x => x.ConnectionId == Context.ConnectionId);
-//         if (connection != null && group != null)
-//         {
-//             messageRepository.RemoveConnection(connection);
-//             if (await messageRepository.SaveAllAsync()) return group;
-//         }
-
-//         throw new Exception("Failed to remove from group");
-// }
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        // var group = await RemoveFromMessageGroup();
-        // await Clients.Group(group.Name).SendAsync("UpdatedGroup", group);
-
-        await RemoveFromMessageGroup();
+        var group = await RemoveFromMessageGroup();
+        await Clients.Group(group.Name).SendAsync("UpdatedGroup", group);
         await base.OnDisconnectedAsync(exception);
     }
 
@@ -109,34 +58,32 @@ public class MessageHub(IMessageRepository messageRepository, IUserRepository us
             Content = createMessageDto.Content
         };
 
-        var groupName = GetGroupName(sender.UserName, recipient.UserName); 
-
+        var groupName = GetGroupName(sender.UserName, recipient.UserName);
         var group = await messageRepository.GetMessageGroup(groupName);
 
-        if(group !=null && group.Connections.Any(x => x.Username == recipient.UserName))
+        if (group != null && group.Connections.Any(x => x.Username == recipient.UserName))
         {
             message.DateRead = DateTime.UtcNow;
-        }else
+        } 
+        else 
         {
             var connections = await PresenceTracker.GetConnectionsForUser(recipient.UserName);
-            if (connections != null && connections?.Count !=null)
+            if (connections != null && connections?.Count != null)
             {
-                await presenceHub.Clients.Clients(connections).SendAsync("NewMessageReceived",
-                new{username = sender.UserName, knownAs = sender.KnownAs});
+                await presenceHub.Clients.Clients(connections).SendAsync("NewMessageReceived", 
+                    new {username = sender.UserName, knownAs = sender.KnownAs});
             }
         }
-        
+
         messageRepository.AddMessage(message);
 
         if (await messageRepository.SaveAllAsync()) 
         {
-          
-
             await Clients.Group(groupName).SendAsync("NewMessage", mapper.Map<MessageDto>(message));
         }
     }
 
-    private async Task<bool> AddToGroup(string groupName)
+    private async Task<Group> AddToGroup(string groupName)
     {
         var username = Context.User?.GetUsername() ?? throw new Exception("Cannot get username");
         var group = await messageRepository.GetMessageGroup(groupName);
@@ -145,29 +92,32 @@ public class MessageHub(IMessageRepository messageRepository, IUserRepository us
         if (group == null)
         {
             group = new Group{Name = groupName};
-            
             messageRepository.AddGroup(group);
         }
 
         group.Connections.Add(connection);
 
-        return await messageRepository.SaveAllAsync();
+        if (await messageRepository.SaveAllAsync()) return group;
 
         throw new HubException("Failed to join group");
     }
 
-    private async Task RemoveFromMessageGroup() 
+    private async Task<Group> RemoveFromMessageGroup() 
     {
-        
-    var connection = await messageRepository.GetConnection(Context.ConnectionId);
+        var group = await messageRepository.GetGroupForConnection(Context.ConnectionId);
+        var connection = group?.Connections.FirstOrDefault(x => x.ConnectionId == Context.ConnectionId);
+        if (connection != null && group != null)
+        {
+            messageRepository.RemoveConnection(connection);
+            if (await messageRepository.SaveAllAsync()) return group;
+        }
 
-    if(connection != null)
-    {
-        messageRepository.RemoveConnection(connection);
-        
-        await messageRepository.SaveAllAsync();
-       
+        throw new Exception("Failed to remove from group");
     }
 
+    private string GetGroupName(string caller, string? other) 
+    {
+        var stringCompare = string.CompareOrdinal(caller, other) < 0;
+        return stringCompare ? $"{caller}-{other}" : $"{other}-{caller}";
     }
 }

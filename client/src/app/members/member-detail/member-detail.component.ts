@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
-import { MembersService } from '../../_services/members.service';
 import { ActivatedRoute, Router } from '@angular/router';
+
 import { Member } from '../../_models/member';
 import { TabDirective, TabsModule, TabsetComponent } from 'ngx-bootstrap/tabs';
 import { GalleryItem, GalleryModule, ImageItem } from 'ng-gallery';
@@ -20,15 +20,12 @@ import { HubConnectionState } from '@microsoft/signalr';
     styleUrl: './member-detail.component.css',
     imports: [TabsModule, GalleryModule, TimeagoModule, DatePipe, MemberMessagesComponent]
 })
-export class MemberDetailComponent implements OnInit ,OnDestroy{
+export class MemberDetailComponent implements OnInit, OnDestroy {
   @ViewChild('memberTabs', {static: true}) memberTabs?: TabsetComponent;
   private messageService = inject(MessageService);
-  private memberService = inject(MembersService);
-
-  private accountService = inject(AccountService);  
+  private accountService = inject(AccountService);
   presenceService = inject(PresenceService);
   private route = inject(ActivatedRoute);
-
   private router = inject(Router);
   member: Member = {} as Member;
   images: GalleryItem[] = [];
@@ -49,8 +46,6 @@ export class MemberDetailComponent implements OnInit ,OnDestroy{
       next: _ => this.onRouteParamsChange()
     })
 
-
-    
     this.route.queryParams.subscribe({
       next: params => {
         params['tab'] && this.selectTab(params['tab'])
@@ -58,7 +53,10 @@ export class MemberDetailComponent implements OnInit ,OnDestroy{
     })
   }
 
-  
+
+
+
+
   selectTab(heading: string) {
     if (this.memberTabs) {
       const messageTab = this.memberTabs.tabs.find(x => x.heading === heading);
@@ -76,7 +74,6 @@ export class MemberDetailComponent implements OnInit ,OnDestroy{
     }
   }
 
-  
   onTabActivated(data: TabDirective) {
     this.activeTab = data;
     this.router.navigate([], {
@@ -84,18 +81,25 @@ export class MemberDetailComponent implements OnInit ,OnDestroy{
       queryParams: {tab: this.activeTab.heading},
       queryParamsHandling: 'merge'
     })
-
-
     if (this.activeTab.heading === 'Messages' && this.member) {
       const user = this.accountService.currentUser();
-      if(!user) return;
+      if (!user) return;
       this.messageService.createHubConnection(user, this.member.userName);
-    }else{
+    } else {
       this.messageService.stopHubConnection();
     }
   }
 
-ngOnDestroy(): void {
-    
-}
+  ngOnDestroy(): void {
+    this.messageService.stopHubConnection();
+  }
+
+
+
+
+
+
+
+
+
 }
