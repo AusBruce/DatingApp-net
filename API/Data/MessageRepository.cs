@@ -1,4 +1,4 @@
-using System;
+using API.Data;
 using API.DTOs;
 using API.Entities;
 using API.Helpers;
@@ -7,14 +7,13 @@ using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 
-namespace API.Data;
+namespace API;
 
-public class MessageRepository(DataContext context ,IMapper mapper) : IMessageRepository
+public class MessageRepository(DataContext context, IMapper mapper) : IMessageRepository
 {
     public void AddGroup(Group group)
     {
-           context.Groups.Add(group);
-           
+        context.Groups.Add(group);
     }
 
     public void AddMessage(Message message)
@@ -28,11 +27,11 @@ public class MessageRepository(DataContext context ,IMapper mapper) : IMessageRe
     }
 
     public async Task<Connection?> GetConnection(string connectionId)
-    { 
+    {
         return await context.Connections.FindAsync(connectionId);
     }
 
-   public async Task<Group?> GetGroupForConnection(string connectionId)
+    public async Task<Group?> GetGroupForConnection(string connectionId)
     {
         return await context.Groups
             .Include(x => x.Connections)
@@ -55,32 +54,28 @@ public class MessageRepository(DataContext context ,IMapper mapper) : IMessageRe
     public async Task<PagedList<MessageDto>> GetMessagesForUser(MessageParams messageParams)
     {
         var query = context.Messages
-        .OrderByDescending(m => m.MessageSent)
-        .AsQueryable();
-        
+            .OrderByDescending(x => x.MessageSent)
+            .AsQueryable();
+
         query = messageParams.Container switch
-        
         {
-            "Inbox" => query.Where(u => u.Recipient.UserName == messageParams.Username && u.RecipientDeleted == false),
-            "Outbox" => query.Where(u => u.Sender.UserName == messageParams.Username && u.SenderDeleted == false),
-            _ => query.Where(u => u.Recipient.UserName == messageParams.Username && u.DateRead == null && u.RecipientDeleted == false)
+            "Inbox" => query.Where(x => x.Recipient.UserName == messageParams.Username 
+                && x.RecipientDeleted == false),
+            "Outbox" => query.Where(x => x.Sender.UserName == messageParams.Username 
+                && x.SenderDeleted == false),
+            _ => query.Where(x => x.Recipient.UserName == messageParams.Username && x.DateRead == null 
+                && x.RecipientDeleted == false)
         };
 
         var messages = query.ProjectTo<MessageDto>(mapper.ConfigurationProvider);
 
         return await PagedList<MessageDto>.CreateAsync(messages, messageParams.PageNumber, 
             messageParams.PageSize);
-    
-    
     }
-
-
 
     public async Task<IEnumerable<MessageDto>> GetMessageThread(string currentUsername, string recipientUsername)
     {
-        var messages = await context.Messages
-            .Include(x => x.Sender).ThenInclude(x => x.Photos)
-            .Include(x => x.Recipient).ThenInclude(x => x.Photos)
+        var query = context.Messages
             .Where(x => 
                 x.RecipientUsername == currentUsername 
                     && x.RecipientDeleted == false 
@@ -90,22 +85,28 @@ public class MessageRepository(DataContext context ,IMapper mapper) : IMessageRe
                     && x.RecipientUsername == recipientUsername
             )
             .OrderBy(x => x.MessageSent)
-             .ProjectTo<MessageDto>(mapper.ConfigurationProvider)
-            .ToListAsync();
-        var unreadMessages = messages.Where(x => x.DateRead == null && 
+            .AsQueryable();
+
+
+        var unreadMessages = query.Where(x => x.DateRead == null && 
             x.RecipientUsername == currentUsername).ToList();
+
         if (unreadMessages.Count != 0)
         {
             unreadMessages.ForEach(x => x.DateRead = DateTime.UtcNow);
-            await context.SaveChangesAsync();
+
         }
-        return messages;
+
+        return await query.ProjectTo<MessageDto>(mapper.ConfigurationProvider).ToListAsync();
     }
 
     public void RemoveConnection(Connection connection)
     {
-         context.Connections.Remove(connection);
+        context.Connections.Remove(connection);
     }
 
-   
+
+
+
+
 }

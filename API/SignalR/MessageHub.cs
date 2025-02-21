@@ -1,4 +1,3 @@
-using API.Data;
 using API.DTOs;
 using API.Entities;
 using API.Extensions;
@@ -8,7 +7,7 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace API.SignalR;
 
-public class MessageHub(UnitOfWork unitOfWork, 
+public class MessageHub(IUnitOfWork unitOfWork, 
     IMapper mapper, IHubContext<PresenceHub> presenceHub) : Hub
 {
     public override async Task OnConnectedAsync()
@@ -26,8 +25,10 @@ public class MessageHub(UnitOfWork unitOfWork,
 
         var messages = await unitOfWork.MessageRepository.GetMessageThread(Context.User.GetUsername(), otherUser!);
 
+        if (unitOfWork.HasChanges()) await unitOfWork.Complete();
+
         await Clients.Caller.SendAsync("ReceiveMessageThread", messages);
-        
+
     }
 
     public override async Task OnDisconnectedAsync(Exception? exception)
@@ -43,7 +44,7 @@ public class MessageHub(UnitOfWork unitOfWork,
 
         if (username == createMessageDto.RecipientUsername.ToLower())
             throw new HubException("You cannot message yourself");
-        
+
         var sender = await unitOfWork.UserRepository.GetUserByUsernameAsync(username);
         var recipient = await unitOfWork.UserRepository.GetUserByUsernameAsync(createMessageDto.RecipientUsername);
 
