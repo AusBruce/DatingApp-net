@@ -4,7 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { PaginatedResult } from '../_models/pagination';
 import { Message } from '../_models/message';
 import { setPaginatedResponse, setPaginationHeaders } from './PaginationHelper';
-import { HubConnection, HubConnectionBuilder } from '@microsoft/signalr';
+import { HubConnection, HubConnectionBuilder, HubConnectionState } from '@microsoft/signalr';
 import { User } from '../_models/user';
 @Injectable({
   providedIn: 'root'
@@ -51,11 +51,11 @@ export class MessageService {
     // })
   }
 
-  // stopHubConnection() {
-  //   if (this.hubConnection?.state === HubConnectionState.Connected) {
-  //     this.hubConnection.stop().catch(error => console.log(error))
-  //   }
-  // }
+  stopHubConnection() {
+    if (this.hubConnection?.state === HubConnectionState.Connected) {
+      this.hubConnection.stop().catch(error => console.log(error))
+    }
+  }
   
   getMessages(pageNumber: number, pageSize: number, container: string) {
     let params = setPaginationHeaders(pageNumber, pageSize);
@@ -70,8 +70,8 @@ export class MessageService {
     return this.http.get<Message[]>(this.baseUrl + 'messages/thread/' + username);
   }
   
-  sendMessage(username: string, content: string) {
-    return this.http.post<Message>(this.baseUrl + 'messages', {recipientUsername: username, content})
+  async sendMessage(username: string, content: string) {
+    return this.hubConnection?.invoke('SendMessage', {recipientUsername: username, content})
   }
   
   deleteMessage(id: number) {
