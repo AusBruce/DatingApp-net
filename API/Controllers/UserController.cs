@@ -44,25 +44,23 @@ public async Task<ActionResult<MemberDto>> GetUser(string username)
 
 
 
+
 [HttpPut]
-public async Task<ActionResult> UpdateUser(MemberUpdateDto memberUpdateDto)
-{
-   var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    public async Task<ActionResult> UpdateUser(MemberUpdateDto memberUpdateDto)
+    {
+        var user = await unitOfWork.UserRepository.GetUserByUsernameAsync(User.GetUsername());
 
-   if(username == null) return BadRequest("No username found in token");
+        if (user == null) return BadRequest("Could not find user");
 
-   var user = await unitOfWork.UserRepository.GetUserByUsernameAsync(username);
+        mapper.Map(memberUpdateDto, user);
 
-   if(user ==null ) return BadRequest("Could not find user");
+        if (await unitOfWork.Complete()) return NoContent();
 
-   mapper.Map(memberUpdateDto,user);
-
+        return BadRequest("Failed to update the user");
+    }
    
 
-   if (await unitOfWork.Complete()) return NoContent();
-
-   return BadRequest("Failed to update the user");
-}
+  
 
   [HttpPost("add-photo")]
     public async Task<ActionResult<PhotoDto>> AddPhoto(IFormFile file)
