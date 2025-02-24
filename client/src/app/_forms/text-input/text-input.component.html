@@ -7,7 +7,8 @@
         placeholder={{label()}}
     >
     <label>{{label()}}</label>
-    <div *ngIf="control.hasError('required')" 
+
+    <!-- <div *ngIf="control.hasError('required')" 
       class="invalid-feedback text-start">Please enter a {{label()}}</div>
     <div *ngIf="control.hasError('minlength')" 
       class="invalid-feedback text-start">
@@ -21,6 +22,23 @@
       class="invalid-feedback text-start">
       Passwords do not match
     </div>
-</div>
+</div> -->
 
+
+<div *ngIf="control.hasError('required')" class="invalid-feedback text-start">
+  Please enter a {{label()}}
+</div>
+<div *ngIf="control.hasError('minlength')" class="invalid-feedback text-start">
+  {{label()}} must be at least {{control.errors?.['minlength'].requiredLength}} characters
+</div>
+<div *ngIf="control.hasError('maxlength')" class="invalid-feedback text-start">
+  {{label()}} must be at most {{control.errors?.['maxlength'].requiredLength}} characters
+</div>
+<div *ngIf="control.hasError('isMatching')" class="invalid-feedback text-start">
+  Passwords do not match
+</div>
+<div *ngIf="control.hasError('weakPassword')" class="invalid-feedback text-start">
+  Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.
+</div>
+</div>
 

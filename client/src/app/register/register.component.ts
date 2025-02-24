@@ -1,6 +1,7 @@
 import { Component, EventEmitter, inject,  OnInit,  output,  } from '@angular/core';
 import { AbstractControl, FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
 import { AccountService } from '../_services/account.service';
+import { passwordStrengthValidator } from '../_validators/password-strength.validator';
 
 import { JsonPipe, NgIf } from '@angular/common';
 import { TextInputComponent } from '../_forms/text-input/text-input.component';
@@ -45,7 +46,7 @@ cancelRegister = output<boolean>();
       city: ['', Validators.required],
       country: ['', Validators.required],
       password: ['', [Validators.required, Validators.minLength(4), 
-          Validators.maxLength(8)]],
+          Validators.maxLength(8),passwordStrengthValidator()]],
       confirmPassword: ['', [Validators.required, this.matchValues('password')]],
     });
       
